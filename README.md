@@ -12,8 +12,3 @@ manager.
 
 Be sure that this library is properly installed as described here: 
 https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries
-
-This code can read PT1000 board properly but parameters have to be adjusted 
-properly.
-
-
