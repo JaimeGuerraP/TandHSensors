@@ -182,8 +182,7 @@ void loop()
   }
   else{
   // One could obtain resistances instead and calculate temperatures elsewhere,
-  // if that is the case, comment rtdx.getTemperature() lines above,
-  // and uncomment  rtdx.getResistances() below
+  // if that is the case, set TEMP_OUTPUT = 0.
   
   t0 = (float)rtd0.getResistance();
   t1 = (float)rtd1.getResistance();
@@ -195,7 +194,7 @@ void loop()
   float tRHSensor = 25.0;
   int numberOfSamplesRH = 10;
   
-  // Get the average of n=10 measurments of relative humidity
+  // Get the average of numberOSamplesRH=10 measurments of relative humidity
   float RH = getRelativeHumidityAverage(A0,tRHSensor,numberOfSamplesRH);
 
   // Prints the measurements obtained by sensors
@@ -303,7 +302,6 @@ void printMeasurementToLCD(LiquidCrystal lcd,float f0,float f1,float f2,float f3
   lcd.print(f4,0);
   lcd.print(",");
   lcd.setCursor(10,1);
-  // lcd.print("RH=");
   lcd.print(RH,0);
 }
 #endif
