@@ -65,20 +65,28 @@
 ***************************************************************************/
 
 // Declaring if the instrumentation would have a LCD screen.
-// If setup won't have a LCD just comment next line. 
+// If setup will not have a LCD screen just comment next line. 
 
 #define LCDFLAG
 
+// Sampling time given in ms
+#define samplingTime 1000
+
+// To get temperatures at the output use 1.
+// To get resistances at the output use 0.
+#define TEMP_OUTPUT 1
+
 // the sensor communicates using SPI, so include the hardware SPI library:
 #include <SPI.h>
+
 // include Playing With Fusion MAX31865 library
+//Note that PwFusion_MAX31865.h and PwFusion_MAX31865.cpp were modified from the original
+//found in https://github.com/PlayingWithFusion/PWFusion_MAX31865 
 #include <PwFusion_MAX31865.h> 
 
 #ifdef LCDFLAG
 #include <LiquidCrystal.h>
 #endif
-
-
 
 // CS pin used for the connection with the sensor
 // other connections are controlled by the SPI library)
@@ -90,6 +98,7 @@ const int CS4_PIN = 6;
 
 int HIH4000_Pin = A0;
 int HIHAnalogRead = 0;
+float t0,t1,t2,t3,t4 = 0;
 
 // Create instance of MAX31865 class
 MAX31865 rtd0;
@@ -123,26 +132,28 @@ void setup() {
   pinMode(d6,OUTPUT);
   pinMode(d7,OUTPUT);
   #endif
+  //Use RTD_TYPE_PT1000 or RTD_TYPE_PT100 depending of your sensors
   // configure rtd sensor channel 0
-  rtd0.begin(CS0_PIN, RTD_2_WIRE, RTD_TYPE_PT100);
+  rtd0.begin(CS0_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);
 
   // configure rtd sensor channel 1
-  rtd1.begin(CS1_PIN, RTD_2_WIRE, RTD_TYPE_PT100);
+  rtd1.begin(CS1_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);
 
   // configure rtd sensor channel 2
-  rtd2.begin(CS2_PIN, RTD_2_WIRE, RTD_TYPE_PT100);
+  rtd2.begin(CS2_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);
 
   // configure rtd sensor channel 3
-  rtd3.begin(CS3_PIN, RTD_2_WIRE, RTD_TYPE_PT100);  
+  rtd3.begin(CS3_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);  
   
   // configure rtd sensor channel 3
-  rtd4.begin(CS4_PIN, RTD_2_WIRE, RTD_TYPE_PT100);  
+  rtd4.begin(CS4_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);  
 
   // Serial.println(F("MAX31865 Configured"));
   
   // give the sensor time to set up
   delay(100);
 
+  // Configuration of LCD screen
   #ifdef LCDFLAG
   lcd.begin(16,2);
   lcd.clear();
@@ -158,14 +169,34 @@ void loop()
   rtd2.sample();
   rtd3.sample();
   rtd4.sample();
-  float t0 = (float)rtd0.getTemperature();
-  float t1 = (float)rtd1.getTemperature();
-  float t2 = (float)rtd2.getTemperature();
-  float t3 = (float)rtd3.getTemperature();
-  float t4 = (float)rtd4.getTemperature();
+  
+  // Get the temperature of sensors. Algorithm to calculate temperature from resistance
+  // was taken from the library mentioned in 
+  // https://learn.adafruit.com/adafruit-max31865-rtd-pt100-amplifier/arduino-code 
+  if (TEMP_OUTPUT){
+  t0 = (float)rtd0.getTemperature();
+  t1 = (float)rtd1.getTemperature();
+  t2 = (float)rtd2.getTemperature();
+  t3 = (float)rtd3.getTemperature();
+  t4 = (float)rtd4.getTemperature();
+  }
+  else{
+  // One could obtain resistances instead and calculate temperatures elsewhere,
+  // if that is the case, comment rtdx.getTemperature() lines above,
+  // and uncomment  rtdx.getResistances() below
+  
+  t0 = (float)rtd0.getResistance();
+  t1 = (float)rtd1.getResistance();
+  t2 = (float)rtd2.getResistance();
+  t3 = (float)rtd3.getResistance();
+  t4 = (float)rtd4.getResistance();
+  }
+  
+  float tRHSensor = 25.0;
+  int numberOfSamplesRH = 10;
   
   // Get the average of n=10 measurments of relative humidity
-  float RH = getRelativeHumidityAverage(A0,25,10);
+  float RH = getRelativeHumidityAverage(A0,tRHSensor,numberOfSamplesRH);
 
   // Prints the measurements obtained by sensors
   printMeasurmentToSerial(t0,t1,t2,t3,t4,RH);
@@ -173,7 +204,7 @@ void loop()
   #ifdef LCDFLAG 
   printMeasurementToLCD(lcd, t0,t1,t2,t3,t4,RH);
   #endif
-  delay(1000);    
+  delay(samplingTime);    
 }
 
 void PrintRTDStatus(uint8_t status)
@@ -230,7 +261,7 @@ float getRelativeHumidity(int HIH4000_Pin, float temperature){
   return RH;
 }
 
-float getRelativeHumidityAverage(int HIH4000_Pin, float temperature,int n){
+float getRelativeHumidityAverage(int HIH4000_Pin, float temperature, int n){
   float sumRH = 0.0;
   for (int i = 0; i < n; i++ ){
     sumRH = sumRH + getRelativeHumidity(HIH4000_Pin,temperature);
@@ -258,18 +289,21 @@ void printMeasurmentToSerial(float f0,float f1,float f2,float f3,float f4, float
 #ifdef LCDFLAG
 void printMeasurementToLCD(LiquidCrystal lcd,float f0,float f1,float f2,float f3,float f4, float RH){
   lcd.setCursor(0,0);
-  lcd.print(f0,4);
+  lcd.print(f0,0);
   lcd.print(",");
   lcd.setCursor(5,0);
-  lcd.print(f1,4);
+  lcd.print(f1,0);
   lcd.print(",");
   lcd.setCursor(10,0);
-  lcd.print(f2,4);
+  lcd.print(f2,0);
   lcd.setCursor(0,1);
-  lcd.print(f3,4);
+  lcd.print(f3,0);
   lcd.print(",");
-  lcd.setCursor(5,0);
-  lcd.print("RH=");
-  lcd.print(RH,4);
+  lcd.setCursor(5,1);
+  lcd.print(f4,0);
+  lcd.print(",");
+  lcd.setCursor(10,1);
+  // lcd.print("RH=");
+  lcd.print(RH,0);
 }
 #endif
