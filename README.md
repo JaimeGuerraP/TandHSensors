@@ -10,5 +10,9 @@ resistance. The current algorithm to convert resistance to temperature was taken
 from Adafruit_MAX31865 library which can be downloaded from Arduino's library
 manager.
 
+To switch between PT100 and PT1000, RTD_TYPE_PT100 or RTD_TYPE_PT1000 should be 
+picked. Also, RNOMINAL should be adjusted to 100.0 or 1000.0 for PT100 or PT1000,
+respectively. RNOMINAL can be found in PwFusion_MAX31865.h, line 68.
+
 Be sure that this library is properly installed as described here: 
 https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries

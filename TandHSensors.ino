@@ -134,19 +134,19 @@ void setup() {
   #endif
   //Use RTD_TYPE_PT1000 or RTD_TYPE_PT100 depending of your sensors
   // configure rtd sensor channel 0
-  rtd0.begin(CS0_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);
+  rtd0.begin(CS0_PIN, RTD_2_WIRE, RTD_TYPE_PT100);
 
   // configure rtd sensor channel 1
-  rtd1.begin(CS1_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);
+  rtd1.begin(CS1_PIN, RTD_2_WIRE, RTD_TYPE_PT100);
 
   // configure rtd sensor channel 2
-  rtd2.begin(CS2_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);
+  rtd2.begin(CS2_PIN, RTD_2_WIRE, RTD_TYPE_PT100);
 
   // configure rtd sensor channel 3
-  rtd3.begin(CS3_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);  
+  rtd3.begin(CS3_PIN, RTD_2_WIRE, RTD_TYPE_PT100);  
   
   // configure rtd sensor channel 3
-  rtd4.begin(CS4_PIN, RTD_2_WIRE, RTD_TYPE_PT1000);  
+  rtd4.begin(CS4_PIN, RTD_2_WIRE, RTD_TYPE_PT100);  
 
   // Serial.println(F("MAX31865 Configured"));
   
@@ -279,8 +279,8 @@ void printMeasurmentToSerial(float f0,float f1,float f2,float f3,float f4, float
   Serial.print(f2);
   Serial.print(",t3=");
   Serial.print(f3);
-  Serial.print(",t4=");
-  Serial.print(f3);
+  //Serial.print(",t4=");
+  //Serial.print(f4);
   Serial.print(",RH=");
   Serial.print(RH);
   Serial.print("\n");
